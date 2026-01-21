@@ -4,6 +4,8 @@ import cors from 'cors';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import User from './models/User.js';
+import { createCanvas } from "canvas";
+import { THEMES } from "./themes.js";
 
 const app = express();
 
@@ -249,6 +251,66 @@ app.post('/api/user/save-config', async (req, res) => {
     res.status(500).json({ error: "Failed to save configuration" });
   }
 });
+
+// 6. WALLPAPER IMAGE (for iOS / Android)
+app.get("/wallpaper.png", (req, res) => {
+  try {
+    const {
+      birthDate = "2000-01-01",
+      mode = "LIFE",
+      themeId = "default",
+      shape = "rounded",
+      phoneModel = "iphone"
+    } = req.query;
+
+    // iPhone Pro Max resolution
+    const width = 1179;
+    const height = 2556;
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext("2d");
+
+    const themeIndex = Number(req.query.themeId) || 0;
+const theme = THEMES[themeIndex] || THEMES[0];
+
+// Background
+ctx.fillStyle = theme.bg;
+ctx.fillRect(0, 0, width, height);
+
+// Dots
+ctx.fillStyle = theme.dots;
+
+// Accent / current day
+ctx.fillStyle = theme.current;
+
+    // Title
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 64px Arial";
+    ctx.fillText("DOSTDOTS", 60, 120);
+
+    // Details
+    ctx.font = "36px Arial";
+    ctx.fillText(`Mode: ${mode}`, 60, 220);
+    ctx.fillText(`Birth: ${birthDate}`, 60, 280);
+    ctx.fillText(`Theme: ${themeId}`, 60, 340);
+
+    // Footer
+    ctx.font = "28px Arial";
+    ctx.fillStyle = "#888";
+    ctx.fillText("Generated via dostdots.app", 60, height - 80);
+
+    // CRITICAL HEADERS
+    res.setHeader("Content-Type", "image/png");
+    res.setHeader("Cache-Control", "no-store");
+    res.setHeader("Content-Disposition", "inline");
+
+    res.send(canvas.toBuffer("image/png"));
+  } catch (err) {
+    console.error("Wallpaper Error:", err);
+    res.status(500).send("Wallpaper generation failed");
+  }
+});
+
 
 const PORT = 3001;
 app.listen(PORT, () => {

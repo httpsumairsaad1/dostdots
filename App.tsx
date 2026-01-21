@@ -775,7 +775,7 @@ const App: React.FC = () => {
             onClick={() => {
                 setUser(null);          // clear user
                 setAuthMode('login');   // default to login
-                setView('auth');        // navigate to Auth.tsx
+                setView('home');        // navigate to Auth.tsx
             }}
             className="p-2 text-gray-400 hover:text-red-500 transition-colors"
             title="Logout"
